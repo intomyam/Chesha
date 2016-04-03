@@ -7,15 +7,23 @@
 //
 
 import UIKit
+import SwiftyJSON
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
   var window: UIWindow?
-
-
+  
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
     // Override point for customization after application launch.
+    let config = Realm.Configuration(
+      schemaVersion: 2,
+      migrationBlock: { migration, oldSchemaVersion in
+        if (oldSchemaVersion < 1) {
+        }
+    })
+    Realm.Configuration.defaultConfiguration = config
+    
     return true
   }
 
@@ -39,6 +47,48 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   func applicationWillTerminate(application: UIApplication) {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+      }
+  
+  func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
+    let code = CroudiaAPI.getQueryStringParameter(url.absoluteString, param: "code")
+    
+    if code != nil {
+      CroudiaAPI.getAccessToken(code!, completionHandler: { data, response, error in
+        let json = JSON(data: data!)
+    
+        let account = Account()
+        account.access_token = json["access_token"].string!
+        account.refresh_token = json["refresh_token"].string!
+        account.expired_at = NSDate(timeIntervalSinceNow: json["expires_in"].double!)
+        
+        print(json["access_token"].string!)
+        print(json["refresh_token"].string!)
+        
+        let realm = try! Realm()
+        try! realm.write {
+          realm.deleteAll()
+        }
+        
+        try! realm.write {
+          realm.add(account)
+        }
+        
+        let ud = NSUserDefaults.standardUserDefaults()
+        ud.setObject(account.id, forKey: "nowAccount")
+        ud.synchronize()
+        
+        CroudiaAPI.completeAccount(account)
+        
+        ud.setObject(account.id, forKey: "nowAccount")
+        ud.synchronize()
+      })
+    }
+
+    let storyboard = UIStoryboard(name: "Main", bundle: nil)
+    let nextVC = storyboard.instantiateViewControllerWithIdentifier("tab_bar")
+    window?.rootViewController = nextVC
+    
+    return true
   }
 
 
