@@ -4,6 +4,21 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>Pods-Chesha.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>Pods-CheshaTests.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>Pods-CheshaUITests.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -32,7 +47,22 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>33E86995B04A1D9448D7151197C74D49</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>666C158CCC2E36DA2A43B1F8B508A6C7</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>97498F842FEE6FB02DE9F49615A2BD59</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9AF67DCBA88BB0CD65AA392C1DB065CD</key>
 		<dict>
 			<key>primary</key>
 			<true/>

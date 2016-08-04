@@ -8,13 +8,29 @@
 
 import UIKit
 import SwiftyJSON
+import RealmSwift
 
 extension UIImageView {
   public func imageFromUrl(urlString: String) {
+    
+    /*
+    let url = NSURL(string: urlString);
+    let imageData :NSData = try! NSData(contentsOfURL: url!,options: NSDataReadingOptions.DataReadingMappedIfSafe)
+    
+    self.image = UIImage(data:imageData);
+    
+
+    return
+    */
+    
+    
     if let url = NSURL(string: urlString) {
       let request = NSURLRequest(URL: url)
+      
+      
       let configuration = NSURLSessionConfiguration.defaultSessionConfiguration()
       let session = NSURLSession(configuration: configuration, delegate:nil, delegateQueue:NSOperationQueue.mainQueue())
+      
       let task = session.dataTaskWithRequest(request, completionHandler: {data, response, error -> Void in
         if let imageData = data as NSData? {
           self.image = UIImage(data: imageData)
@@ -23,7 +39,10 @@ extension UIImageView {
       
       task.resume()
       
+      
+
       /*
+    
       NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
         (response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
         if let imageData = data as NSData? {
@@ -31,6 +50,8 @@ extension UIImageView {
         }
       }
       */
+      
+    
     }
   }
 }
@@ -38,21 +59,30 @@ extension UIImageView {
 class HomeTableViewController: UITableViewController {
   private var tweets: JSON = nil
   
+  var selected_croudia_id: Int?
+  
   override func viewDidLoad() {
     super.viewDidLoad()
+
+    CroudiaAPI.getHomeTimeline({ data, response, error in
+      if (response as! NSHTTPURLResponse).statusCode == 200 {
+        self.tweets = JSON(data: data!)
+        print("get")
+        self.tableView.reloadData()
+      }
+    })
     
-    // Uncomment the following line to preserve selection between presentations
     // self.clearsSelectionOnViewWillAppear = false
-    
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem()
     
     self.refreshControl = UIRefreshControl()
     self.refreshControl!.attributedTitle = NSAttributedString(string: "引っ張って更新")
     self.refreshControl!.addTarget(self, action: "refresh", forControlEvents: UIControlEvents.ValueChanged)
     self.tableView.addSubview(refreshControl!)
-    
-    loadTimeline()
+  }
+  
+  override func viewWillAppear(animated: Bool) {
+    //loadTimeline()
+    super.viewWillAppear(animated)
   }
   
   override func didReceiveMemoryWarning() {
@@ -62,12 +92,12 @@ class HomeTableViewController: UITableViewController {
   
   // MARK: - Table view data source
   
-  /*
+  
   override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
     // #warning Incomplete implementation, return the number of sections
-    return 0
+    return 1
   }
-*/
+
   
   override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     // #warning Incomplete implementation, return the number of rows
@@ -81,8 +111,22 @@ class HomeTableViewController: UITableViewController {
     cell.detailTextLabel!.text = tweets[indexPath.row]["user"]["name"].string!
     cell.imageView!.imageFromUrl(tweets[indexPath.row]["user"]["profile_image_url_https"].string!)
     
-    
     return cell
+  }
+  
+  override func tableView(table: UITableView, didSelectRowAtIndexPath indexPath:NSIndexPath) {
+    selected_croudia_id = tweets[indexPath.row]["user"]["id"].int
+
+    if selected_croudia_id != nil {
+      performSegueWithIdentifier("toUserTableViewController",sender: nil)
+    }
+  }
+  
+  override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject!) {
+    if (segue.identifier == "toUserTableViewController") {
+      let userTableViewController = segue.destinationViewController as! UserTableViewController
+      userTableViewController.croudia_id = selected_croudia_id
+    }
   }
 
   
@@ -132,28 +176,22 @@ class HomeTableViewController: UITableViewController {
   */
   
   func loadTimeline(){
-    
-    print(Application.account!.refresh_token)
-    print(Application.account!.expired_at)
-    
     CroudiaAPI.getHomeTimeline({ data, response, error in
       self.tweets = JSON(data: data!)
       //print(self.tweets)
+      print("get")
       self.tableView.reloadData()
     })
   }
-  
-  @IBAction func refreshTouch(sender: AnyObject) {
-    CroudiaAPI.refleshAccessToken({refleshData, refleshResponse, refleshError in
-      self.refresh()
-    })
-  }
+
   
   func refresh()
   {
     CroudiaAPI.getHomeTimeline({ data, response, error in
-      self.tweets = JSON(data: data!)
-      self.tableView.reloadData()
+      if (response as! NSHTTPURLResponse).statusCode == 200 {
+        self.tweets = JSON(data: data!)
+        self.tableView.reloadData()
+      }
       self.refreshControl!.endRefreshing()
     })
   }

@@ -10,6 +10,7 @@
 import UIKit
 
 class WhisperViewController: UIViewController {
+  @IBOutlet weak var whisperTextField: UITextField!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,14 +27,12 @@ class WhisperViewController: UIViewController {
   
   
   @IBAction func backViewTap(sender: AnyObject) {
-    print("tap")
     self.view.endEditing(true)
   }
     
   @IBAction func whisperTap(sender: AnyObject) {
     CroudiaAPI.whisper({ data, response, error in
-      print("whisp")
-    }, status: "最初のささやき")
+    }, status: whisperTextField.text!)
   }
 
     /*

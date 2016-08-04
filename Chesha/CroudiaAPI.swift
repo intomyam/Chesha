@@ -115,6 +115,31 @@ class CroudiaAPI {
     })
   }
   
+  static func getUserTimeline(completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void,
+    croudia_id: Int = 0, screen_name: String = "") {
+    let request: Request = Request()
+    
+    let urlComponents = NSURLComponents()
+    urlComponents.scheme = "https"
+    urlComponents.host = "api.croudia.com"
+    urlComponents.path = "/2/statuses/user_timeline.json"
+    
+    let croudiaIdQuery = NSURLQueryItem(name: "user_id", value: String(croudia_id))
+    let screenNameQuery = NSURLQueryItem(name: "screen_name", value: screen_name)
+    urlComponents.queryItems = [croudiaIdQuery, screenNameQuery]
+    
+    request.get(urlComponents.URL!, completionHandler: { data, response, error in
+      print(response)
+      let code = (response as! NSHTTPURLResponse).statusCode
+      if  code == 401 {
+        refleshAccessToken({refleshData, refleshResponse, refleshError in
+        })
+      }
+      
+      completionHandler(data, response, error)
+    })
+  }
+  
   
   static func whisper(completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void, status: String) {
     let request: Request = Request()
